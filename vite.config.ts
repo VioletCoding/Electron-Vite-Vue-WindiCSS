@@ -1,14 +1,15 @@
+import vue from '@vitejs/plugin-vue'
 import { rmSync } from 'fs'
 import path from 'path'
+import AutoImport from 'unplugin-auto-import/vite'
+import Components from 'unplugin-vue-components/vite'
 import {
-  type Plugin,
-  type UserConfig,
-  defineConfig,
+  defineConfig, type Plugin,
+  type UserConfig
 } from 'vite'
-import vue from '@vitejs/plugin-vue'
 import electron from 'vite-plugin-electron'
+import WindiCSS from 'vite-plugin-windicss'
 import pkg from './package.json'
-
 rmSync('dist', { recursive: true, force: true }) // v14.14.0
 
 // https://vitejs.dev/config/
@@ -41,10 +42,45 @@ export default defineConfig({
       // https://github.com/electron-vite/vite-plugin-electron/tree/main/packages/electron-renderer#electron-renderervite-serve
       renderer: {},
     }),
+    // Use WindiCSS, do not use TailwindCSS, that is too slow. 
+    WindiCSS(),
+    AutoImport({
+      imports: [
+        'vue',
+        'vue-router',
+        '@vueuse/core',
+      ],
+      dts: 'src/auto-imports.d.ts',
+      dirs: [
+        'src/composables',
+        'src/store',
+      ],
+      vueTemplate: true,
+      resolvers: []
+    }),
+    Components({
+      // allow auto load components under `./src/components/`
+      extensions: ['vue'],
+      // allow auto import and register components used
+      include: [/\.vue$/, /\.vue\?vue/],
+      dts: 'src/components.d.ts',
+    })
   ],
   server: {
     host: pkg.env.VITE_DEV_SERVER_HOST,
     port: pkg.env.VITE_DEV_SERVER_PORT,
+    proxy: {
+      '/api': {
+        target: 'http://localhost',
+        ws: true,
+        rewrite: (path) => path.replace(/^\/api/, '/')
+      },
+    },
+  },
+  resolve: {
+    alias: {
+      '~/': `${path.resolve(__dirname, 'src')}/`,
+    },
   },
 })
 

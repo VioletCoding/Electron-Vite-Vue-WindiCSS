@@ -1,4 +1,4 @@
-import { app, BrowserWindow, shell, ipcMain } from 'electron'
+import { app, BrowserWindow, ipcMain, shell } from 'electron'
 import { release } from 'os'
 import { join } from 'path'
 
@@ -34,7 +34,7 @@ const indexHtml = join(ROOT_PATH.dist, 'index.html')
 
 async function createWindow() {
   win = new BrowserWindow({
-    title: 'Main window',
+    title: 'Master Chat',
     icon: join(ROOT_PATH.public, 'favicon.ico'),
     webPreferences: {
       preload,
@@ -44,6 +44,8 @@ async function createWindow() {
       nodeIntegration: true,
       contextIsolation: false,
     },
+    width: 1440,
+    height: 900
   })
 
   if (app.isPackaged) {
@@ -51,7 +53,7 @@ async function createWindow() {
   } else {
     win.loadURL(url)
     // Open devTool if the app is not packaged
-    win.webContents.openDevTools()
+    // win.webContents.openDevTools()
   }
 
   // Test actively push message to the Electron-Renderer
